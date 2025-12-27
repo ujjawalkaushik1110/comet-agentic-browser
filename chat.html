@@ -124,6 +124,16 @@
                     </label>
                 </div>
                 <div class="setting-group">
+                    <label>Browser Control Permission</label>
+                    <div class="permission-info">
+                        <span id="permission-status" class="permission-status not-set">⏸️ Not Set</span>
+                        <label style="margin-top: 8px;">
+                            <input type="checkbox" id="reset-permission">
+                            Reset permission (will ask again)
+                        </label>
+                    </div>
+                </div>
+                <div class="setting-group">
                     <label for="temperature">Temperature: <span id="temp-value">0.7</span></label>
                     <input type="range" id="temperature" min="0" max="1" step="0.1" value="0.7">
                 </div>

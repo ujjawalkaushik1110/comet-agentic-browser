@@ -16,7 +16,7 @@ class CometChat {
             apiUrl: 'http://localhost:5000',
             autoExecute: true,
             showThinking: true,
-            temperature: 0.7
+            browserControlPermission: null // null = not asked, true = allowed, false = denied
         };
         
         // Chat history
@@ -131,6 +131,11 @@ class CometChat {
             // Add AI response
             this.addMessage('ai', response);
             
+            // If permission was denied, add helpful message
+            if (commandResult && commandResult.permissionDenied) {
+                this.addMessage('system', 'Browser control was denied. You can change this in Settings or grant permission when prompted again.', 'warning');
+            }
+            
         } catch (error) {
             this.removeThinking(thinkingId);
             this.addMessage('system', `Error: ${error.message}`, 'error');
@@ -162,6 +167,29 @@ class CometChat {
         for (const [type, pattern] of Object.entries(commands)) {
             const match = message.match(pattern);
             if (match) {
+                // Check for browser control permission
+                if (this.settings.browserControlPermission === null) {
+                    // First time - ask for permission
+                    const granted = await this.requestBrowserControlPermission(type, match[1] || null);
+                    if (!granted) {
+                        return {
+                            type,
+                            detected: true,
+                            permissionDenied: true,
+                            parameter: match[1] || null
+                        };
+                    }
+                } else if (this.settings.browserControlPermission === false) {
+                    // Permission was previously denied
+                    return {
+                        type,
+                        detected: true,
+                        permissionDenied: true,
+                        parameter: match[1] || null
+                    };
+                }
+                
+                // Permission granted - execute if auto-execute is on
                 if (this.settings.autoExecute) {
                     commandResult = await this.executeCommand(type, match[1] || null);
                 } else {
@@ -177,6 +205,66 @@ class CometChat {
         }
         
         return commandResult;
+    }
+    
+    async requestBrowserControlPermission(commandType, parameter) {
+        return new Promise((resolve) => {
+            // Create permission dialog
+            const dialog = this.createPermissionDialog(commandType, parameter);
+            document.body.appendChild(dialog);
+            
+            // Handle allow button
+            dialog.querySelector('#allow-control').addEventListener('click', () => {
+                this.settings.browserControlPermission = true;
+                this.saveSettings();
+                dialog.remove();
+                resolve(true);
+            });
+            
+            // Handle deny button
+            dialog.querySelector('#deny-control').addEventListener('click', () => {
+                this.settings.browserControlPermission = false;
+                this.saveSettings();
+                dialog.remove();
+                resolve(false);
+            });
+            
+            // Handle allow once button
+            dialog.querySelector('#allow-once').addEventListener('click', () => {
+                dialog.remove();
+                resolve(true);
+            });
+        });
+    }
+    
+    createPermissionDialog(commandType, parameter) {
+        const dialog = document.createElement('div');
+        dialog.className = 'permission-dialog';
+        dialog.innerHTML = `
+            <div class="permission-content">
+                <div class="permission-header">
+                    <svg width="48" height="48" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 12L11 14L15 10" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <h2>Browser Control Permission</h2>
+                </div>
+                <div class="permission-body">
+                    <p>Comet AI wants to control your browser to execute:</p>
+                    <div class="permission-command">
+                        <strong>${commandType.toUpperCase()}</strong>
+                        ${parameter ? `<span>${parameter}</span>` : ''}
+                    </div>
+                    <p class="permission-warning">⚠️ This will allow the AI to interact with web pages on your behalf.</p>
+                </div>
+                <div class="permission-actions">
+                    <button id="deny-control" class="secondary-button">Deny</button>
+                    <button id="allow-once" class="secondary-button">Allow Once</button>
+                    <button id="allow-control" class="primary-button">Always Allow</button>
+                </div>
+            </div>
+        `;
+        return dialog;
     }
     
     async executeCommand(type, parameter) {
@@ -475,6 +563,12 @@ Be concise, helpful, and friendly. Use markdown formatting when appropriate.`;
                 <div class="quick-commands">
                     <h3>Try these commands:</h3>
                     <button class="quick-cmd" data-command="Browse to https://github.com">Browse to GitHub</button>
+        // Check if user wants to reset browser control permission
+        const resetPermission = document.getElementById('reset-permission');
+        if (resetPermission && resetPermission.checked) {
+            this.settings.browserControlPermission = null;
+        }
+        
                     <button class="quick-cmd" data-command="Search for AI news">Search for AI news</button>
                     <button class="quick-cmd" data-command="Take a screenshot">Take a screenshot</button>
                     <button class="quick-cmd" data-command="Summarize this page">Summarize this page</button>
@@ -538,6 +632,21 @@ Be concise, helpful, and friendly. Use markdown formatting when appropriate.`;
         this.statusText.textContent = text;
     }
     
+        
+        // Update permission status display
+        const permissionStatus = document.getElementById('permission-status');
+        if (permissionStatus) {
+            if (this.settings.browserControlPermission === true) {
+                permissionStatus.textContent = '✅ Allowed';
+                permissionStatus.className = 'permission-status allowed';
+            } else if (this.settings.browserControlPermission === false) {
+                permissionStatus.textContent = '❌ Denied';
+                permissionStatus.className = 'permission-status denied';
+            } else {
+                permissionStatus.textContent = '⏸️ Not Set';
+                permissionStatus.className = 'permission-status not-set';
+            }
+        }
     openSettings() {
         const modal = document.getElementById('settings-modal');
         modal.classList.add('active');
