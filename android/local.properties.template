@@ -1,0 +1,8 @@
+# Local properties for development
+# Copy this file to local.properties and update values
+
+# API Configuration
+API_BASE_URL=https://your-app.azurewebsites.net/
+
+# Android SDK location (automatically set by Android Studio)
+sdk.dir=/path/to/Android/sdk

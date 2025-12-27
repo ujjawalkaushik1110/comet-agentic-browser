@@ -1,0 +1,8 @@
+build:
+  docker:
+    web: Dockerfile
+  config:
+    NODE_ENV: production
+
+run:
+  web: python -m uvicorn api.app:app --host 0.0.0.0 --port $PORT

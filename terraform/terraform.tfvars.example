@@ -1,0 +1,33 @@
+# Example terraform.tfvars file
+# Copy this to terraform.tfvars and fill in your values
+
+# Project Configuration
+project_name = "comet-browser"
+environment  = "production"
+location     = "eastus"  # Choose: eastus, westus2, westeurope, etc.
+
+# SKU Configuration (for cost optimization)
+sku_name    = "B1"        # B1 = $13/mo, F1 = Free (limited)
+db_sku_name = "B_Gen5_1"  # Basic tier PostgreSQL
+
+# Secrets (DO NOT commit this file to git!)
+openai_api_key = "sk-your-openai-api-key-here"
+admin_email    = "your-email@example.com"
+
+# CORS Configuration
+allowed_cors_origins = ["*"]  # Update with your domains
+
+# Monitoring
+enable_monitoring = true
+
+# Autoscaling (requires Standard tier or higher)
+enable_autoscale = false
+min_instances    = 1
+max_instances    = 3
+
+# Additional Tags
+tags = {
+  Owner       = "Your Name"
+  Department  = "Engineering"
+  CostCenter  = "Student"
+}

@@ -1,0 +1,103 @@
+# Android Project Files
+*.iml
+.gradle
+/local.properties
+/.idea
+.DS_Store
+/build
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+*.ap_
+*.aab
+
+# Keystore files
+*.jks
+*.keystore
+keystore.properties
+
+# Built application files
+*.ap_
+*.aab
+
+# Generated files
+bin/
+gen/
+out/
+release/
+
+# Gradle files
+.gradle/
+build/
+
+# Local configuration file
+local.properties
+
+# Log Files
+*.log
+
+# Android Studio
+.idea/
+*.iml
+*.iws
+*.ipr
+.navigation/
+captures/
+output.json
+
+# NDK
+obj/
+
+# IntelliJ IDEA
+*.iml
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/gradle.xml
+.idea/assetWizardSettings.xml
+.idea/dictionaries
+.idea/libraries
+.idea/jarRepositories.xml
+.idea/modules.xml
+.idea/navEditor.xml
+
+# Android Studio 3
+.idea/caches
+.idea/modules.xml
+.idea/misc.xml
+
+# Keystore
+*.jks
+*.keystore
+
+# External native build
+.externalNativeBuild
+.cxx/
+
+# Google Services
+google-services.json
+
+# Freeline
+freeline.py
+freeline/
+freeline_project_description.json
+
+# fastlane
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots
+fastlane/test_output
+fastlane/readme.md
+
+# Version control
+vcs.xml
+
+# lint
+lint/intermediates/
+lint/generated/
+lint/outputs/
+lint/tmp/
+*.lint
+
+# Android Profiling
+*.hprof

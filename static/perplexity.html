@@ -1,0 +1,589 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comet AI - Intelligent Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f0f;
+            color: #fff;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 20px 40px;
+            border-bottom: 1px solid #222;
+            background: #0a0a0a;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .container {
+            flex: 1;
+            max-width: 900px;
+            width: 100%;
+            margin: 0 auto;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .chat-container {
+            flex: 1;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            padding: 20px 0;
+        }
+
+        .message {
+            margin-bottom: 30px;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.user {
+            text-align: right;
+        }
+
+        .message-content {
+            display: inline-block;
+            max-width: 80%;
+            text-align: left;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 15px 20px;
+            border-radius: 20px 20px 5px 20px;
+            font-size: 16px;
+        }
+
+        .message.ai .message-content {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 5px 20px 20px 20px;
+            border-left: 3px solid #667eea;
+        }
+
+        .thinking {
+            color: #888;
+            font-size: 14px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .spinner {
+            width: 16px;
+            height: 16px;
+            border: 2px solid #333;
+            border-top-color: #667eea;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .answer {
+            line-height: 1.8;
+            font-size: 15px;
+            color: #e0e0e0;
+            margin-bottom: 15px;
+        }
+
+        .sources {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+        }
+
+        .sources-title {
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .source {
+            background: #0f0f0f;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border: 1px solid #222;
+            transition: border-color 0.2s;
+        }
+
+        .source:hover {
+            border-color: #667eea;
+        }
+
+        .source-title {
+            font-size: 14px;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+
+        .source-url {
+            font-size: 12px;
+            color: #667eea;
+            text-decoration: none;
+        }
+
+        .input-container {
+            position: sticky;
+            bottom: 0;
+            background: #0f0f0f;
+            padding: 20px 0;
+            border-top: 1px solid #222;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 10px;
+            background: #1a1a1a;
+            border-radius: 25px;
+            padding: 8px;
+            border: 2px solid #222;
+            transition: border-color 0.3s;
+            align-items: center;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #667eea;
+        }
+
+        #questionInput {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 16px;
+            padding: 12px 15px;
+            outline: none;
+        }
+
+        #questionInput::placeholder {
+            color: #555;
+        }
+
+        .send-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: #fff;
+            padding: 12px 25px;
+            border-radius: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+
+        .send-btn:hover:not(:disabled) {
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .welcome {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .welcome h1 {
+            font-size: 42px;
+            margin-bottom: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .welcome p {
+            color: #888;
+            font-size: 18px;
+            margin-bottom: 40px;
+        }
+
+        .suggestions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .suggestion {
+            background: #1a1a1a;
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid #222;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .suggestion:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+        }
+
+        .suggestion-icon {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .suggestion-text {
+            font-size: 14px;
+            color: #ddd;
+        }
+
+        .error {
+            background: #2a1515;
+            border: 1px solid #5a2a2a;
+            color: #ff6b6b;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 10px;
+        }
+
+        .mode-select {
+            background: #0f0f0f;
+            border: 1px solid #333;
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+        }
+
+        .meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            margin-top: 8px;
+            color: #888;
+            font-size: 13px;
+        }
+
+        .tag {
+            background: #1f1f1f;
+            border: 1px solid #333;
+            padding: 6px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            color: #ddd;
+        }
+
+        .timeline {
+            margin-top: 16px;
+            border-top: 1px solid #222;
+            padding-top: 12px;
+        }
+
+        .timeline-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            color: #ddd;
+            font-size: 14px;
+        }
+
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #667eea;
+            margin-top: 6px;
+        }
+
+        .timeline-text {
+            flex: 1;
+        }
+
+        .shots {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .shot img {
+            width: 100%;
+            border-radius: 10px;
+            border: 1px solid #222;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🤖 Comet AI</div>
+    </div>
+
+    <div class="container">
+        <div class="chat-container" id="chatContainer">
+            <div class="welcome" id="welcome">
+                <h1>Ask me anything</h1>
+                <p>I'll search the web and provide accurate answers with sources</p>
+                <div class="suggestions">
+                    <div class="suggestion" onclick="askQuestion('What are the latest developments in AI?')">
+                        <div class="suggestion-icon">🤖</div>
+                        <div class="suggestion-text">Latest AI developments</div>
+                    </div>
+                    <div class="suggestion" onclick="askQuestion('How does quantum computing work?')">
+                        <div class="suggestion-icon">⚛️</div>
+                        <div class="suggestion-text">Explain quantum computing</div>
+                    </div>
+                    <div class="suggestion" onclick="askQuestion('What is the current weather in San Francisco?')">
+                        <div class="suggestion-icon">🌤️</div>
+                        <div class="suggestion-text">Current weather info</div>
+                    </div>
+                    <div class="suggestion" onclick="askQuestion('Top programming languages in 2025?')">
+                        <div class="suggestion-icon">💻</div>
+                        <div class="suggestion-text">Programming trends</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-container">
+            <div class="input-wrapper">
+                <select id="modeSelect" class="mode-select">
+                    <option value="fast">Fast (shallow search)</option>
+                    <option value="deep">Deep (more steps)</option>
+                </select>
+                <input 
+                    type="text" 
+                    id="questionInput" 
+                    placeholder="Ask anything..."
+                    onkeypress="if(event.key === 'Enter') askQuestion()"
+                >
+                <button class="send-btn" id="sendBtn" onclick="askQuestion()">Ask</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let isProcessing = false;
+        let currentTaskId = null;
+
+        function addMessage(content, isUser = false) {
+            const welcome = document.getElementById('welcome');
+            if (welcome) welcome.style.display = 'none';
+
+            const chatContainer = document.getElementById('chatContainer');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : 'ai'}`;
+            
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.innerHTML = content;
+            
+            messageDiv.appendChild(contentDiv);
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+            
+            return contentDiv;
+        }
+
+        function addThinkingMessage() {
+            const thinkingHtml = `
+                <div class="thinking">
+                    <div class="spinner"></div>
+                    <span>Searching the web...</span>
+                </div>
+                <div class="answer" id="currentAnswer"></div>
+            `;
+            return addMessage(thinkingHtml, false);
+        }
+
+        async function askQuestion(question = null) {
+            const input = document.getElementById('questionInput');
+            const sendBtn = document.getElementById('sendBtn');
+            const mode = document.getElementById('modeSelect').value;
+            
+            if (!question) {
+                question = input.value.trim();
+            }
+            
+            if (!question || isProcessing) return;
+
+            // Add user message
+            addMessage(question, true);
+            input.value = '';
+            
+            // Disable input
+            isProcessing = true;
+            sendBtn.disabled = true;
+            
+            // Add thinking message
+            const responseDiv = addThinkingMessage();
+
+            try {
+                // Create enhanced search task
+                const searchTask = `Search the web for: "${question}". 
+                Visit multiple relevant websites, extract key information, and synthesize a comprehensive answer. 
+                Provide sources for the information found.`;
+
+                const maxIterations = mode === 'deep' ? 25 : 12;
+
+                // Submit task
+                const response = await fetch('/browse', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        goal: searchTask,
+                        model: 'qwen2.5:0.5b',
+                        max_iterations: maxIterations,
+                        headless: true
+                    })
+                });
+
+                const data = await response.json();
+                currentTaskId = data.task_id;
+
+                // Poll for results
+                await pollForAnswer(responseDiv);
+
+            } catch (error) {
+                responseDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                isProcessing = false;
+                sendBtn.disabled = false;
+            }
+        }
+
+        async function pollForAnswer(responseDiv) {
+            const sendBtn = document.getElementById('sendBtn');
+            
+            try {
+                const response = await fetch(`/tasks/${currentTaskId}`);
+                const data = await response.json();
+
+                if (data.status === 'completed') {
+                    const payload = data.result || {};
+                    const answerText = extractResultText(payload);
+                    const formattedAnswer = formatAnswer(answerText, payload);
+                    responseDiv.innerHTML = formattedAnswer;
+                    
+                    isProcessing = false;
+                    sendBtn.disabled = false;
+                } else if (data.status === 'failed') {
+                    responseDiv.innerHTML = `<div class="error">Failed: ${data.error || 'Unknown error'}</div>`;
+                    isProcessing = false;
+                    sendBtn.disabled = false;
+                } else {
+                    // Still processing
+                    setTimeout(() => pollForAnswer(responseDiv), 2000);
+                }
+            } catch (error) {
+                responseDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                isProcessing = false;
+                sendBtn.disabled = false;
+            }
+        }
+
+        function extractResultText(payload) {
+            if (!payload) return 'Task completed';
+            if (typeof payload === 'string') return payload;
+            return payload.result || 'Task completed';
+        }
+
+        function formatAnswer(text, payload = {}) {
+            text = (text || '').toString();
+            // Simple formatting - you can enhance this
+            const lines = text.split('\n').filter(line => line.trim());
+            let answer = '';
+            let sources = [];
+
+            const trace = payload.trace || [];
+            const shots = payload.screenshots || [];
+            const iterations = payload.iterations;
+
+            // Try to extract URLs as sources
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            const urls = text.match(urlRegex) || [];
+            
+            if (urls.length > 0) {
+                // Remove URLs from main text for cleaner answer
+                answer = text.replace(urlRegex, '').trim();
+                sources = [...new Set(urls)]; // Remove duplicates
+            } else {
+                answer = text;
+            }
+
+            let html = `<div class="answer">${escapeHtml(answer)}</div>`;
+            html += `<div class="meta-row"><span class="tag">Iterations: ${iterations || 'n/a'}</span>`;
+            html += `<span class="tag">Sources detected: ${sources.length}</span></div>`;
+            
+            if (sources.length > 0) {
+                html += '<div class="sources"><div class="sources-title">Sources:</div>';
+                sources.forEach((url, idx) => {
+                    const domain = new URL(url).hostname.replace('www.', '');
+                    html += `
+                        <div class="source">
+                            <div class="source-title">${idx + 1}. ${domain}</div>
+                            <a href="${url}" target="_blank" class="source-url">${url}</a>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+            }
+
+            if (shots.length > 0) {
+                html += '<div class="timeline"><div class="sources-title">Screenshots</div><div class="shots">';
+                shots.forEach((p) => {
+                    const safe = p.replace(/^\//, '');
+                    html += `<div class="shot"><img src="/${safe}" alt="screenshot"></div>`;
+                });
+                html += '</div></div>';
+            }
+
+            if (trace.length > 0) {
+                html += '<div class="timeline"><div class="sources-title">Timeline</div>';
+                trace.forEach(item => {
+                    html += `<div class="timeline-item"><div class="timeline-dot"></div><div class="timeline-text"><div>${escapeHtml(item.type || '')} • ${escapeHtml(item.ts || '')}</div><div style="color:#aaa;font-size:13px;">${escapeHtml(JSON.stringify(item.detail || item.message || item.tool || '', null, 2))}</div></div></div>`;
+                });
+                html += '</div>';
+            }
+
+            return html;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Focus input on load
+        window.onload = () => {
+            document.getElementById('questionInput').focus();
+        };
+    </script>
+</body>
+</html>

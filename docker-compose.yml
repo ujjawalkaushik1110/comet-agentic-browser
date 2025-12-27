@@ -1,0 +1,82 @@
+version: '3.8'
+
+services:
+  # Main API service
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: comet-browser-api
+    ports:
+      - "8000:8000"
+    environment:
+      - PORT=8000
+      - HOST=0.0.0.0
+      - LLM_BASE_URL=http://ollama:11434
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./screenshots:/app/screenshots
+      - ./logs:/app/logs
+    depends_on:
+      - ollama
+    restart: unless-stopped
+    networks:
+      - comet-network
+
+  # Ollama service for local LLM
+  ollama:
+    image: ollama/ollama:latest
+    container_name: comet-ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama-data:/root/.ollama
+    restart: unless-stopped
+    networks:
+      - comet-network
+    # Pull model on startup
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        ollama serve &
+        sleep 5
+        ollama pull mistral
+        wait
+
+  # Redis for task queue (optional, for production)
+  redis:
+    image: redis:7-alpine
+    container_name: comet-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - comet-network
+
+  # Nginx reverse proxy (optional, for production)
+  nginx:
+    image: nginx:alpine
+    container_name: comet-nginx
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - api
+    restart: unless-stopped
+    networks:
+      - comet-network
+
+volumes:
+  ollama-data:
+    driver: local
+  redis-data:
+    driver: local
+
+networks:
+  comet-network:
+    driver: bridge

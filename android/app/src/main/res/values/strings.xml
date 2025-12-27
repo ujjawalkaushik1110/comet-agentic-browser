@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Comet Browser</string>
+    
+    <!-- Auth -->
+    <string name="email">Email</string>
+    <string name="password">Password</string>
+    <string name="login">Login</string>
+    <string name="register">Register</string>
+    <string name="dont_have_account">Don\'t have an account? Register</string>
+    <string name="already_have_account">Already have an account? Login</string>
+    
+    <!-- Main -->
+    <string name="no_tasks">No tasks yet. Tap + to create one!</string>
+    <string name="browse_url">Browse URL</string>
+    <string name="url_hint">Enter URL (https://example.com)</string>
+    <string name="browse">Browse</string>
+    <string name="background">Background</string>
+    <string name="cancel">Cancel</string>
+    <string name="logout">Logout</string>
+    <string name="sync">Sync</string>
+    
+    <!-- Task Detail -->
+    <string name="task_detail">Task Detail</string>
+    <string name="url">URL</string>
+    <string name="title">Title</string>
+    <string name="status">Status</string>
+    <string name="created_at">Created</string>
+    <string name="updated_at">Updated</string>
+    <string name="completed_at">Completed</string>
+    <string name="content">Content</string>
+    <string name="error_message">Error</string>
+    <string name="refresh">Refresh</string>
+    <string name="view_in_browser">View in Browser</string>
+    <string name="cancel_task">Cancel Task</string>
+    <string name="delete_task">Delete Task</string>
+    
+    <!-- Status -->
+    <string name="status_pending">Pending</string>
+    <string name="status_in_progress">In Progress</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_failed">Failed</string>
+    <string name="status_cancelled">Cancelled</string>
+    
+    <!-- Errors -->
+    <string name="error_network">Network error. Please check your connection.</string>
+    <string name="error_unknown">An unknown error occurred</string>
+    <string name="error_invalid_url">Please enter a valid URL</string>
+    
+    <!-- Notifications -->
+    <string name="notification_sync_title">Syncing Tasks</string>
+    <string name="notification_sync_message">Keeping your tasks up to date</string>
+</resources>
