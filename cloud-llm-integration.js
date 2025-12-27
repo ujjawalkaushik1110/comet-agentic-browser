@@ -1,4 +1,106 @@
-// Comet AI Browser Chat - Main JavaScript
+// Comet AI Browser - Cloud LLM Integration
+// Uses GitHub Education Pack Free Services
+// No local services required - All cloud-based!
+
+class CloudLLMIntegration {
+  constructor() {
+    this.providers = {
+      huggingface: {
+        name: 'Hugging Face (FREE)',
+        apiUrl: 'https://api-inference.huggingface.co/models',
+        models: ['meta-llama/Llama-2-7b-chat-hf', 'mistralai/Mistral-7B-Instruct-v0.1'],
+        token: localStorage.getItem('hf_token')
+      },
+      azure: {
+        name: 'Azure AI ($100/month - FREE Student Pack)',
+        models: ['gpt-35-turbo', 'gpt-4'],
+        key: localStorage.getItem('azure_key'),
+        endpoint: localStorage.getItem('azure_endpoint')
+      },
+      replicate: {
+        name: 'Replicate API (FREE credits)',
+        models: ['meta/llama-2-7b-chat', 'mistralai/mistral-7b'],
+        token: localStorage.getItem('replicate_token')
+      }
+    };
+    this.currentProvider = this.detectProvider();
+    this.conversationHistory = [];
+  }
+
+  detectProvider() {
+    if (this.providers.huggingface.token) return 'huggingface';
+    if (this.providers.azure.key) return 'azure';
+    if (this.providers.replicate.token) return 'replicate';
+    return null;
+  }
+
+  async sendMessage(message) {
+    if (!this.currentProvider) {
+      return this.setupPrompt();
+    }
+    
+    try {
+      const response = await this.callLLM(message);
+      this.conversationHistory.push({role: 'user', content: message});
+      this.conversationHistory.push({role: 'assistant', content: response});
+      return response;
+    } catch (error) {
+      return `Error: ${error.message}`;
+    }
+  }
+
+  async callLLM(message) {
+    if (this.currentProvider === 'huggingface') {
+      return this.callHuggingFace(message);
+    } else if (this.currentProvider === 'azure') {
+      return this.callAzure(message);
+    } else if (this.currentProvider === 'replicate') {
+      return this.callReplicate(message);
+    }
+  }
+
+  async callHuggingFace(message) {
+    const response = await fetch('https://api-inference.huggingface.co/models/meta-llama/Llama-2-7b-chat-hf', {
+      method: 'POST',
+      headers: {'Authorization': `Bearer ${this.providers.huggingface.token}`},
+      body: JSON.stringify({inputs: message})
+    });
+    const result = await response.json();
+    return result[0]?.generated_text || 'No response';
+  }
+
+  async callAzure(message) {
+    const url = `${this.providers.azure.endpoint}/openai/deployments/gpt-35-turbo/chat/completions?api-version=2023-05-15`;
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {'api-key': this.providers.azure.key, 'Content-Type': 'application/json'},
+      body: JSON.stringify({messages: [{role: 'user', content: message}]})
+    });
+    const result = await response.json();
+    return result.choices[0].message.content;
+  }
+
+  async callReplicate(message) {
+    const response = await fetch('https://api.replicate.com/v1/predictions', {
+      method: 'POST',
+      headers: {'Authorization': `Token ${this.providers.replicate.token}`},
+      body: JSON.stringify({version: 'meta/llama-2-7b-chat', input: {prompt: message}})
+    });
+    const result = await response.json();
+    return result.output?.join('') || 'No response';
+  }
+
+  setupPrompt() {
+    return `Setup Required! Choose one:\n1. Hugging Face (FREE): https://huggingface.co/settings/tokens\n2. Azure (FREE $100): https://azure.microsoft.com/free/students\n3. Replicate (FREE): https://replicate.com/api/tokens`;
+  }
+
+  getProviderInfo() {
+    return this.currentProvider ? {name: this.providers[this.currentProvider].name, models: this.providers[this.currentProvider].models} : null;
+  }
+}
+
+window.cloudLLM = new CloudLLMIntegration();
+console.log('Cloud LLM Ready:', window.cloudLLM.getProviderInfo());// Comet AI Browser Chat - Main JavaScript
 
 class CometChat {
     constructor() {
